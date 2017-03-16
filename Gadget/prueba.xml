@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs 
+  	title="Busqueda" description="Busqueda de libros con el Api de google Books"
+    author="Erick Garcia"
+    author_email="erick.jgarciap@hotmail.com"
+    height="60"
+    width="60"
+    scrolling="true"
+    >
+  <Require feature="minimessage"/>
+</ModulePrefs>
+<UserPref name="width" datatype="string" default_value="" />
+<UserPref name="height" datatype="string" default_value="" />
+<UserPref name="username" required="true" datatype="string" display_name="Account Name" />
+	<UserPref name="mycolor2" display_name="Color" default_value="Red" datatype="enum" >
+    <EnumValue value="Red" />
+    <EnumValue value="Aqua" />
+    <EnumValue value="Lime" />
+    <EnumValue value="Yellow" />
+    <EnumValue value="Pink" />
+    <EnumValue value="Orange" />
+    <EnumValue value="White" />
+</UserPref> 
+	<UserPref name="mycolor" display_name="Color" default_value="Yellow" datatype="enum" >
+    <EnumValue value="Red" />
+    <EnumValue value="Aqua" />
+    <EnumValue value="Lime" />
+    <EnumValue value="Yellow" />
+    <EnumValue value="Pink" />
+    <EnumValue value="Orange" />
+    <EnumValue value="White" />
+    </UserPref> 
+  <Content type="html">
+  <![CDATA[
+  <div id="busq">
+  <div id="messagebox"></div>
+  
+  <h1>Busqueda libro</h1>
+	<input id="search" placeholder="Titulo del libro">
+	<button id="button" type="button">OKA</button>
+    </div>
+	<div id="results"></div>
+	<div id="autodestrucion"></div>
+	<script type="text/javascript">
+		var prefs = new gadgets.Prefs();
+		var d= document.getElementById("busq");
+		d.style.backgroundColor=prefs.getString("mycolor2"); 
+	    var msg = new gadgets.MiniMessage(1, document.getElementById("messagebox"));
+	  	msg.createDismissibleMessage("Este gadget ayuda a la busqueda de libros");
+	  	var msg1 = new gadgets.MiniMessage(2);
+		msg1.createTimerMessage("Recuerda escribir bien el nomdre del libro que buscas", 10);
+	    var width = prefs.getString("width");
+	    var height = prefs.getString("height");
+		     if (!window.innerWidth && document.body.offsetWidth) {
+			window.innerWidth = document.body.offsetWidth;
+			window.innerHeight = document.body.offsetHeight;
+		}
+		if (width == "") {
+			if (window.innerWidth) {
+				width = window.innerWidth;
+				height = window.innerHeight;
+			}
+			else {
+				width = 640;
+				height = 390;
+			}
+		}
+	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+	<script type="text/javascript">
+  ]]>
+
+    </Content>
+    <Content type="html">
+    	 <![CDATA[
+	function funcionbusqueda(){
+	//cargar las preferencias del gadget
+	 var prefs = new gadgets.Prefs();
+	 var divi= document.getElementById("results");
+	divi.style.backgroundColor=prefs.getString("mycolor"); 
+	// input de busqueda
+	var search =  document.getElementById("search").value
+	// clear 	
+	document.getElementById("results").innerHTML = ""
+	// hacer la peticion del json a la url
+	$.ajax({
+		// url de la api
+	    url:"https://www.googleapis.com/books/v1/volumes?q="+search+" :keyes&key=AIzaSyDBaKQEk2Qd9OTeGviWsRP6SEMtVK8u-x4",
+	    dataType: "json",
+	    type: 'GET',
+	    //respuesta de la solicitud
+	    success: function(data) {
+	    	console.log(data)	
+		    // ciclo de operacion de la respueta
+		    var msg2 = new gadgets.MiniMessage(3);
+	 		msg2.createTimerMessage("Busqueda Realizada", 10);
+		    for(var i = 0; i < data.items.length; i++){
+		   		// store current books volume info 
+		   		var respuesta = data.items[i].volumeInfo;
+		   		// crear elementos con el dom  y javascript
+		   		var div = document.createElement("div");
+		   		var imagen = document.createElement("img");
+		   		var h2 = document.createElement("h2");
+		   		var h3 = document.createElement("h3");
+		   		var h4 = document.createElement("h4");
+		   		var a = document.createElement("a");
+		   		// agregar texto
+		   		h2.innerText = respuesta.title
+		   		a.innerText = "Learn More"
+
+		   		// recuperamos el enlace hacia el libro, tomado desde el JSON
+		   		a.href = respuesta.infoLink
+		   		// set target
+		   		a.setAttribute('target', '_blank')
+
+		   		// recuperamos la imagen con la propieda imagelinks del JSON
+		   		if(respuesta.imageLinks) {
+			   		imagen.src = respuesta.imageLinks.thumbnail;
+		   		} else {
+		   		    
+			   		imagen.src = "https://garciaperezerickdejesus.bitbucket.io/books/img/book.jpg";
+		   		}
+
+		   		//  fecha de publicacion 
+		   		if(respuesta.publishedDate) {
+		   			h4.innerText = respuesta.publishedDate;
+		   		} else {
+		   			h4.innerText = "no encontrado"
+		   		}
+
+		   		// mostrar autores
+		   		if(respuesta.authors) {
+			   		h3.innerText = respuesta.authors[0];
+		   		} else {
+			   		h3.innerText = "autores no encontrados";
+		   		}
+		   		// agregar resultados al div 
+		   		div.appendChild(imagen);
+		   		div.appendChild(h2);
+		   		div.appendChild(h3);
+		   		div.appendChild(h4);
+		   		div.appendChild(a);
+		   		// agregar resultados al documento html
+		   		var results = document.getElementById("results");
+		   		results.appendChild(div);
+		   		
+		   		
+		    }
+	    }
+	})
+}
+//accion del boton
+document.getElementById("button").addEventListener("click", funcionbusqueda, false);
+</script>
+
+
+  ]]>
+  </Content>
+</Module>
